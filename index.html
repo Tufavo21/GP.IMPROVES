@@ -1,67 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mundo Pato</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, sans-serif; background: #e8f6ff; color: #234; line-height: 1.6; }
-  header { background: linear-gradient(#ffe45c, #ffd21e); text-align: center; padding: 3rem 1rem; }
-  header h1 { font-size: 3rem; }
-  header p { font-size: 1.2rem; }
-  main { max-width: 800px; margin: auto; padding: 1.5rem 1rem; }
-  section { background: #fff; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px #0002; }
-  h2 { margin-bottom: .5rem; color: #1e6fd9; }
-  section { border-left: 6px solid #2d8cff; }
-  ul { padding-left: 1.2rem; }
-  button { background: #2d8cff; color: #fff; border: 0; padding: .8rem 1.5rem; font-size: 1.1rem; border-radius: 99px; cursor: pointer; }
-  button:hover { background: #1e6fd9; }
-  #contador { font-size: 1.3rem; margin-top: .8rem; }
-  footer { text-align: center; padding: 1.5rem; color: #567; }
-</style>
-</head>
-<body>
-<header>
-  <h1>🦆 Mundo Pato</h1>
-  <p>Todo lo que siempre quisiste saber sobre los patos</p>
-</header>
-<main>
-  <section>
-    <h2>Datos curiosos</h2>
-    <ul>
-      <li>Hay más de 120 especies de patos en el mundo.</li>
-      <li>Sus plumas son impermeables gracias a un aceite que producen.</li>
-      <li>Pueden dormir con la mitad del cerebro despierta.</li>
-      <li>Los patitos siguen al primer ser que ven al nacer.</li>
-    </ul>
-  </section>
-  <section>
-    <h2>Especies famosas</h2>
-    <ul>
-      <li><b>Ánade real:</b> el clásico de los estanques.</li>
-      <li><b>Pato mandarín:</b> colorido y elegante.</li>
-      <li><b>Pato de Pekín:</b> el blanco de granja.</li>
-    </ul>
-  </section>
-  <section>
-    <h2>¡Haz cuac!</h2>
-    <button onclick="cuac()">🦆 Cuac</button>
-    <p id="contador">Cuacs: 0</p>
-  </section>
-</main>
-<footer>Hecho con ❤️ y muchos patos</footer>
-<script>
-  let n = 0;
-  function cuac() {
-    n++;
-    document.getElementById('contador').textContent = 'Cuacs: ' + n;
-    if ('speechSynthesis' in window) {
-      const u = new SpeechSynthesisUtterance('cuac');
-      u.lang = 'es-ES'; u.pitch = 2;
-      speechSynthesis.speak(u);
-    }
-  }
-</script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Marjal · Clínica de medicina estética en València (beta)</title>
+    <meta name="description" content="Clínica de medicina estética en València: valoración médica previa, plan por escrito y seguimiento. Versión beta con contenido de demostración." />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="canonical" href="https://marjal-clinica.example/" />
+
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Marjal (DEMO)" />
+    <meta property="og:title" content="Marjal · Clínica de medicina estética en València (beta)" />
+    <meta property="og:description" content="Clínica de medicina estética en València: valoración médica previa, plan por escrito y seguimiento. Versión beta con contenido de demostración." />
+    <meta property="og:url" content="https://marjal-clinica.example/" />
+    <meta property="og:image" content="https://marjal-clinica.example/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Marjal, clínica de medicina estética en València" />
+    <meta property="og:locale" content="es_ES" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Marjal · Clínica de medicina estética en València (beta)" />
+    <meta name="twitter:description" content="Clínica de medicina estética en València: valoración médica previa, plan por escrito y seguimiento. Versión beta con contenido de demostración." />
+    <meta name="twitter:image" content="https://marjal-clinica.example/og-image.png" />
+
+    <link rel="preload" as="image" href="/img/hero.webp" type="image/webp" fetchpriority="high" />
+    <script type="application/ld+json" id="jsonld"><!--JSONLD--></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
