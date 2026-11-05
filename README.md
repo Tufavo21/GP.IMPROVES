@@ -12,6 +12,7 @@ npm run build      # dist/ (incluye sitemap.xml y robots.txt)
 npm run preview    # http://localhost:4173
 npm test           # baremo y validación del formulario
 npm run assets     # regenera fotos (WebP/JPG, B/N, plano), favicons, OG y manifest desde assets-cliente/
+npm run assets:demo # [DEMO-IMG] fotos de demostración: AVIF/WebP/JPG 640–2400, B/N, plano y mapas de profundidad, desde assets-demo/
 ```
 
 ## Dónde está cada cosa
@@ -19,6 +20,7 @@ npm run assets     # regenera fotos (WebP/JPG, B/N, plano), favicons, OG y manif
 | Archivo | Contenido |
 |---|---|
 | `src/content/business.js` | **Datos reales** del cliente y marcadores `[FALTA]` (`SHOW_PLACEHOLDERS`). |
+| `public/img-demo/` | [DEMO-IMG] Fotos de demostración (Unsplash). Créditos en `CREDITS.md` e imágenes pendientes de IA en `PROMPTS_IMAGENES.md`. |
 | `src/content/demo-content.js` | **Todo lo inventado** `[DEMO]`: roles, cifras, nombres y m² de proyectos, servicios, proceso, testimonios ficticios, FAQ y EN del eslogan. `DEMO_ENABLED = false` retira lo que solo existe con datos inventados. |
 | `src/content/pricing.js` | Baremo €/m² por tipo y acabados, **vacío** (`null`) y `SHOW_ESTIMATE = false`. |
 | `src/i18n/es.js`, `en.js` | Textos de interfaz. |
@@ -49,7 +51,7 @@ Rellena `min`/`max` (€/m²) en `src/content/pricing.js` y pon `SHOW_ESTIMATE =
 
 ## Verificación (regla 6)
 
-Con `npm run dev` y Playwright MCP: `browser_run_code_unsafe` con `filename: scripts/verify-shots.cjs` hace capturas por sección y por scroll en 25 % (cambia `W` a 390 para móvil) en `shots/v4/`. `node scripts/contact-sheet.mjs shots/v4/1440 hoja.jpg` monta una hoja de contacto. Las animaciones se avanzan con `window.__cfTicker.step(n)`; `window.__cfTicker.stats()` da ms por fotograma.
+Con `npm run dev` y Playwright MCP: `browser_run_code_unsafe` con `filename: scripts/verify-shots.cjs` hace capturas por sección y por scroll en 25 % (cambia `W` a 390 para móvil) en `shots/v4/`. `node scripts/contact-sheet.mjs shots/v4/1440 hoja.jpg` monta una hoja de contacto. v5: `scripts/verify-v5.cjs` (casa, carga, plano a obra, hotlinks, consola y red). `?introT=1300` congela la carga de entrada en ese instante. `window.__cfHouse.renders` cuenta los fotogramas WebGL de la casa. Las animaciones se avanzan con `window.__cfTicker.step(n)`; `window.__cfTicker.stats()` da ms por fotograma.
 
 ## Pendiente del cliente
 

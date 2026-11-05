@@ -128,7 +128,7 @@ export default function Contact({ index, total }) {
             <div><dt className="label">{t('contact.phone')}</dt><dd><a href={BUSINESS.phone.href}>{BUSINESS.phone.intl}</a></dd></div>
             <div><dt className="label">{t('contact.email')}</dt><dd><a href={`mailto:${BUSINESS.email}`} className="break">{BUSINESS.email}</a></dd></div>
             <div><dt className="label">{t('contact.instagram')}</dt><dd><a href={BUSINESS.instagram.url} target="_blank" rel="noopener noreferrer">{BUSINESS.instagram.handle}</a></dd></div>
-            <div><dt className="label">{t('contact.city')}</dt><dd>{BUSINESS.city}{SHOW_PLACEHOLDERS ? <> · <Falta>{FALTA.address}</Falta></> : null}</dd></div>
+            <div><dt className="label">{t('contact.city')}</dt><dd>{BUSINESS.city}</dd></div>
           </dl>
         </aside>
 

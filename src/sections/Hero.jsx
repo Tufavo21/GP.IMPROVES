@@ -2,7 +2,9 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { useI18n } from '../i18n/index.jsx';
 import { useTick, useViewport, reducedMotion } from '../lib/hooks.js';
 import { createSpring, range, easeOut } from '../lib/spring.js';
-import { CLIENT_PHOTOS } from '../content/business.js';
+import { onReady } from '../lib/ready.js';
+import { DEMO_PHOTOS } from '../content/demo-content.js';
+import HeroPieces from '../components/HeroPieces.jsx';
 import Picture from '../components/Picture.jsx';
 import { Button } from '../components/ui.jsx';
 
@@ -11,7 +13,8 @@ import { Button } from '../components/ui.jsx';
 //  · Con el scroll (sección fijada), «EJECUCIÓN DE OBRA» pasa de contorno a relleno letra a letra,
 //    mientras la foto pasa de blanco y negro a color y se abre hasta quedar a sangre.
 //  · prefers-reduced-motion / sin JS: fotograma final estático (titular relleno, foto a color).
-const PHOTO = 'cocina-roble-grafito';
+// [DEMO-IMG] El salón de la escena de la casa: el hero se abre a sangre y la escena continúa debajo.
+const PHOTO = 'casa-salon';
 
 function chars(lines, cls) {
   let k = 0;
@@ -46,10 +49,12 @@ export default function Hero() {
     const all = [...st.a, ...st.b];
     st.springs = all.map(() => createSpring(0, { tension: 110, friction: 19 }));
     st.all = all;
-    st.start = performance.now() + 120;
+    st.start = Infinity; // espera a que la carga de entrada (M7/M20) levante la cortina
+    const off = onReady(() => { st.start = performance.now() + 80; });
     st.entered = false;
     st.p = -1;
     all.forEach((n) => { n.style.opacity = '0'; n.style.transform = 'translate3d(0,50px,0)'; n.style.filter = 'blur(12px)'; });
+    return off;
   }, [lang]);
 
   // Mide dónde termina el titular para que la foto arranque justo debajo.
@@ -101,6 +106,7 @@ export default function Hero() {
     <section id="top" ref={root} className={`hero ${live ? 'is-live' : ''}`} data-logo="light" aria-labelledby="hero-title">
       <div className="hero__pin">
         <div className="hero__head grid" ref={head}>
+          <HeroPieces />
           <h1 className="hero__title display" id="hero-title">
             <span className="sr-only">{full}</span>
             <span className="hero__a" aria-hidden="true">{chars(a, 'hero__line--a')}</span>
@@ -119,7 +125,7 @@ export default function Hero() {
           <div className="hero__pic" ref={pic}>
             <Picture id={PHOTO} variant="bn" alt="" priority sizes="100vw" className="hero__img hero__img--bn" aria-hidden="true" />
             <div className="hero__color" ref={color}>
-              <Picture id={PHOTO} alt={pick(CLIENT_PHOTOS[PHOTO])} priority sizes="100vw" className="hero__img" />
+              <Picture id={PHOTO} alt={pick(DEMO_PHOTOS[PHOTO])} priority sizes="100vw" className="hero__img" />
             </div>
           </div>
           <p className="hero__caption label">{t('hero.caption')}</p>

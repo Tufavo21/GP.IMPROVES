@@ -9,7 +9,7 @@ export const BUSINESS = {
   sector: { es: 'Remodelación de viviendas y reformas interiores', en: 'Home remodelling and interior renovation' },
   services: { es: 'Todo tipo de reformas', en: 'All kinds of renovations' },
   slogan: { es: 'DISEÑO DE INTERIORES · EJECUCIÓN DE OBRA' }, // EN: ver demo-content.js (pendiente de aprobar)
-  city: 'Valencia',
+  city: 'Valencia', // sin estudio físico ni dirección postal (confirmado por el cliente, 2026-11-05)
   country: 'ES',
   phone: { display: '685 35 41 53', intl: '+34 685 35 41 53', href: 'tel:+34685354153' },
   email: 'pableteizquierdoperez@gmail.com', // email público y destino de las solicitudes
@@ -19,7 +19,6 @@ export const BUSINESS = {
 };
 
 export const FALTA = {
-  address: '[FALTA: dirección postal]',
   logoVector: '[FALTA: versión vectorial del logo y confirmar si el marco es un cuadrado cerrado]',
   sloganEn: '[FALTA: traducción al inglés del eslogan aprobada por el cliente]',
   pricing: '[FALTA: baremo de precios]',

@@ -1,6 +1,7 @@
 import { Fragment, createElement, useLayoutEffect, useRef } from 'react';
 import { useTick, useViewport, reducedMotion } from '../lib/hooks.js';
 import { createSpring, SPRINGS } from '../lib/spring.js';
+import { readyState } from '../lib/ready.js';
 
 // Text reveal palabra a palabra (o letra a letra) con stagger, por muelles en el ticker único.
 // El texto está visible por defecto: el estado oculto solo lo aplica JS, y solo si el titular
@@ -24,7 +25,7 @@ export default function Reveal({ as = 'h2', text, mode = 'word', stagger = 45, c
 
   useViewport(ref, ({ rect, vh }) => {
     const a = anim.current;
-    if (a && !a.started && rect.top < vh * 0.92 && rect.bottom > 0) a.started = performance.now();
+    if (a && !a.started && readyState.done && rect.top < vh * 0.92 && rect.bottom > 0) a.started = performance.now();
   }, !reducedMotion);
 
   useTick((s) => {

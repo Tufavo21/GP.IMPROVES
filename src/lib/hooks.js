@@ -54,4 +54,4 @@ export function scrollToId(id) {
   el.focus({ preventScroll: true });
 }
 
-export { reducedMotion, tickerState };
+export { reducedMotion, tickerState, getLenis };

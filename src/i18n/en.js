@@ -21,7 +21,7 @@ export default {
     lede: 'One studio, two people and the same project from start to finish.',
     body: 'Bea Pérez and Gonzalo Pau. Home renovation and interior design in Valencia.',
     cta: 'Request a quote', secondary: 'See projects',
-    caption: 'Oak and graphite · finish reference',
+    caption: 'Living room · demo project',
   },
   studio: {
     title: 'Who designs, builds',
@@ -36,7 +36,18 @@ export default {
     title: 'Projects',
     lede: 'Four spaces, told through their materials.',
     m2: 'm²', year: 'Year', type: 'Type', reference: 'Reference',
+    demo: 'Demo project',
+    phases: 'Build stages',
+    prev: 'Previous stage', next: 'Next stage',
+    phase: { antes: 'Before', durante: 'During', despues: 'After' },
   },
+  house: {
+    title: 'One home, room by room',
+    room: 'Room',
+    note: 'Demo project',
+    aria: 'A walk through a demo home',
+  },
+  loader: { skip: 'Skip', label: 'Loading 2con2estudio' },
   plan: {
     title: 'From drawing to build',
     lede: 'First the drawing; then the build.',
@@ -44,7 +55,9 @@ export default {
     hintTouch: 'Swipe across the drawing to reveal the finished room.',
     show: 'Show the finished room', hide: 'Back to the drawing',
     note: 'Drawing generated from the photograph, for illustration only.',
-    alt: 'Line drawing of the bathroom: freestanding bathtub, niche and wall-hung toilet',
+    noteObra: 'Generated demo image: the same framing under construction and finished.',
+    altObra: 'The same bathroom under construction: bare brick, plumbing chases and no fittings',
+    alt: 'Line drawing of the bathroom: continuous stone worktop, arched mirror and toilet',
   },
   services: {
     title: 'All kinds of renovations',
@@ -59,6 +72,7 @@ export default {
   testimonials: {
     title: 'What they say',
     tag: 'Fictional testimonial · demo',
+    stars: '{n} out of 5 stars',
   },
   faq: { title: 'Questions' },
   contact: {
@@ -106,7 +120,7 @@ export default {
   },
   footer: {
     contact: 'Contact', follow: 'Follow us',
-    demo: 'Demo content: projects, figures, testimonials and questions are illustrative.',
+    demo: 'Demo content: projects, figures, testimonials and questions are illustrative. Photographs are from Unsplash (demo projects, not the studio’s own work).',
     rights: 'All rights reserved.',
     privacy: 'Privacy',
     top: 'Back to top',

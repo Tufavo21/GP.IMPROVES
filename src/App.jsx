@@ -4,6 +4,8 @@ import { useLenis } from './lib/hooks.js';
 import { DEMO_ENABLED } from './content/demo-content.js';
 import Header from './components/Header.jsx';
 import Hero from './sections/Hero.jsx';
+import House from './sections/House.jsx';
+import Loader from './components/Loader.jsx';
 import Studio from './sections/Studio.jsx';
 import Projects from './sections/Projects.jsx';
 import Services from './sections/Services.jsx';
@@ -19,10 +21,12 @@ export default function App() {
   const sections = [Studio, Projects, Services, Process, ...(DEMO_ENABLED ? [Testimonials, Faq] : []), Contact];
   return (
     <LazyMotion features={domAnimation} strict>
+      <Loader />
       <a className="skip" href="#main">{t('skip')}</a>
       <Header />
       <main id="main">
         <Hero />
+        <House />
         {sections.map((S, i) => <S key={i} index={i + 1} total={sections.length} />)}
       </main>
       <Footer />

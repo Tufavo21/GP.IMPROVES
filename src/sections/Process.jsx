@@ -2,8 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { useI18n } from '../i18n/index.jsx';
 import { useTick, useViewport, reducedMotion } from '../lib/hooks.js';
 import { createSpring, SPRINGS, clamp } from '../lib/spring.js';
-import { CLIENT_PHOTOS } from '../content/business.js';
-import { PROCESS } from '../content/demo-content.js';
+import { PROCESS, DEMO_PHOTOS } from '../content/demo-content.js';
 import Picture from '../components/Picture.jsx';
 import { SectionHead } from '../components/ui.jsx';
 
@@ -85,7 +84,7 @@ export default function Process({ index, total }) {
                   <h3 className="pstep__title display">{title}</h3>
                   <p className="pstep__text">{text}</p>
                   <div className="pstep__media-static">
-                    {(() => { const { id, variant } = splitImg(s.img); return <Picture id={id} variant={variant} alt={variant ? '' : pick(CLIENT_PHOTOS[id])} sizes="100vw" />; })()}
+                    {(() => { const { id, variant } = splitImg(s.img); return <Picture id={id} variant={variant} alt={variant ? '' : pick(DEMO_PHOTOS[id])} sizes="100vw" />; })()}
                   </div>
                 </li>
               );

@@ -223,3 +223,84 @@ Verificación Playwright: logo visible en el fotograma 0. Tras el primer paso de
   - Validar al salir del campo hacía desaparecer el aviso y movía la casilla de privacidad justo al pulsarla, así que ahora se valida mientras se escribe.
 - **Pruebas:** UNA reserva real (corte de caballero · Juan Carlos · jueves 5/11/2026 12:00 · suligonserv@gmail.com · respuesta 200). La prueba de 409 se envió al servidor real, que la rechazó sin crear reserva. Las capturas de la pantalla final usan la misma respuesta real repetida en el navegador, sin llamar a n8n.
 - **Pendiente:** el horario de la API dice martes de 10:00 a 19:00 y la web, de 9:30 a 13:30. La política de privacidad sigue sin existir.
+
+---
+
+## v5 · 2con2estudio — iteración «Baukasten + casa + fotos demo» (2026-11-05)
+
+**Base intacta**: estilo A «Atelier Mono», datos reales (`business.js`), identidad B/N, logo, firma del hero (M15 + B/N → color + apertura a sangre), M17 del proceso, M22 de estudio y la mecánica de M10. Reglas 1-6 y Regla 7 (ticker único + muelles de la BASE, sin Three.js).
+
+### Recap
+| Cambio | Qué se hizo | Piezas M |
+|---|---|---|
+| 1a Carga de entrada | `Loader.jsx`: 6 piezas propias (losa, 2 listones, marco, arco, círculo) en línea de 1 px (stroke-dash) → relleno blanco roto / grafito / negro con falso volumen (3 capas con offset, sin sombras) → losa y listones encajan por muelles en el marco **medido** del logo, el resto se recoge dentro → aparece el logo → cortina `translateY(0 → -100 %)` que emite `ready` (`lib/ready.js`), y el M15 del hero y los `Reveal` esperan a esa señal. Fondo papel (#F6F5F2), porque el logo negro y el hero son claros. Dura 2,6 s, una vez por sesión (`sessionStorage` con try/catch), con «Saltar» y Escape. Red de seguridad: animación CSS a 3,2 s y `markReady` a 3,5 s. En reduced-motion no hay carga. `?introT=ms` congela un fotograma para verificar | **M7 + M20** |
+| 1b Piezas del hero | `HeroPieces.jsx`: canvas 2D con 5 piezas (3 en móvil) en los huecos del titular, oscilación lenta y repulsión de radio fijo (170 px) por muelles; en táctil derivan solas. Se pausa fuera de viewport y en reduced-motion es un fotograma estático | **M11** |
+| 2 Escena de la casa | `House.jsx`: sección fijada justo después del hero (que ya termina a sangre en el mismo salón), salón → cocina → dormitorio → baño. WebGL propio (`lib/depthgl.js`, sin Three.js) con desplazamiento por mapa de profundidad (Depth Anything v2 base, ONNX vía transformers.js, `scripts/make-depth.mjs`), cámara con cursor y lerp (±3-4° aparentes), deriva autónoma en táctil y zoom lento por scroll. El cambio de estancia es un barrido direccional con borde suave y re-disparo del Reveal del nombre y la línea [DEMO]. Sin WebGL, las mismas imágenes con fundido CSS; en reduced-motion, estancias apiladas | **M17 + M15/Reveal + M21** (M19 queda como respaldo sin GL) |
+| 3 Fotos profesionales | 14 fotos de Unsplash (licencia Unsplash) descargadas a 3200 px en `assets-demo/`. `npm run assets:demo` genera `public/img-demo/` en AVIF + WebP + JPG a 640/1280/1920/2400, con saturación ×0,92 común y ≤ 250 KB a 1280 px (máximo 230 KB). `<picture>` con dimensiones, alt descriptivo y lazy salvo el hero; preload AVIF del hero. Pies «Proyecto de demostración» y aviso en el footer. `public/img-cliente/` sin tocar | — |
+| 4 Plano a obra | Misma mecánica M10, con la foto a 2400 px elegida por ancho de caja × DPR, canvas a `devicePixelRatio` (máx. 2), `imageSmoothingQuality: high` y `sizes` corregido a 58vw. La capa «antes» sigue siendo el dibujo derivado (coincide píxel a píxel). Si se añade `assets-demo/bano-plano-obra.jpg`, el script la usa como capa base y cambia el texto | **M10** |
+| 5 Extra | Progreso lateral tipo «stories» por estancia (vertical en desktop, horizontal arriba en móvil) | **M16** |
+
+**Descartadas**: M22 extra (ya se usa en Estudio y el brief pide no repetir), M1 (Three.js), M4, M5, M6, M8, M9, M12, M13, M14 y M18 (no encajan con Atelier Mono ni las pide el design.md).
+
+### Hallazgos y conflictos
+- **Sin generador de imágenes**: no se inventó ninguna. La casa usa 4 fotos reales coherentes (roble, mármol, neutros cálidos, luz natural); cocina y dormitorio son de la misma fotógrafa, pero no es literalmente la misma vivienda. El par obra/terminada del baño no se puede hacer coincidir píxel a píxel sin IA. Prompts exactos en `public/img-demo/PROMPTS_IMAGENES.md`.
+- **Hotlink**: ninguno. Las peticiones solo van a `localhost:5173`.
+- **Búsqueda en Unsplash**: el API web exige verificación de navegador; las fotos se eligieron navegando en el panel y se descargaron por el enlace oficial «download».
+- **Dibujo del baño**: el umbral de Sobel se subió (30 → 52) porque la textura de la piedra metía ruido.
+- **Proyecto a sangre**: la etiqueta «Proyecto de demostración» se partía en 3 líneas (ocupaba 1 columna) → `grid-column: 1 / -1`.
+- **Piezas del hero en móvil**: rozaban «INTERIORES» y «EJECUCIÓN» → posiciones propias de móvil en los huecos reales.
+- **Lenis y la carga**: el efecto de App crea Lenis después del de la carga, así que `stop()` se aplaza un fotograma.
+- **`getLenis`** no se exportaba desde `hooks.js` → exportado.
+- **Dependencias rotas al abrir la sesión** (`@fontsource/*`, `lenis` faltaban en `node_modules`) → `npm install`.
+
+### Verificación Playwright MCP (`scripts/verify-v5.cjs`, capturas en `shots/v5/1440` y `shots/v5/390`)
+- Capturas por sección tocada y scroll en 0/25/50/75/100 % de página, hero, casa y proceso, a 1440 y a 390.
+- **Casa**: en cada 25 % entra la estancia siguiente y el pin se mantiene (`top: 0`) en las 5 posiciones, a 1440 y a 390.
+- **WebGL**: dibuja 60/60 fotogramas a la vista; tapado, 0/60 (máx. 1 de salida al recorrer proyectos).
+- **Carga**: dura 2,75 s y emite `ready`; «Saltar» la retira en 0,71 s; al recargar en la misma sesión no aparece; el contenido está renderizado debajo (9 secciones). Fotogramas congelados a 380 / 1000 / 1500 / 1980 ms: contorno → volumen → ensamblaje → logo.
+- **Plano a obra**: con 739 px CSS se sirve `bano-plano-1280.avif`; canvas 741 × 926 a DPR 1. Con DPR 2-3 el srcset y el canvas suben a 1920/2400.
+- **Formulario solo con datos inválidos**: vacío da 8 errores y foco en «nombre»; email y teléfono erróneos dan mensajes concretos; no hay envío ni navegación.
+- **Consola**: 0 errores y 0 avisos. Red: 0 respuestas ≥ 400.
+- **`<head>` y JSON-LD**: solo datos reales; OG con la imagen del cliente; ninguna imagen demo en el head salvo el preload del hero.
+- **ES/EN**: cambian `lang`, title, casa y pie del hero; la vuelta a ES es correcta.
+- **Reduced-motion**: sin carga, hero estático, casa en 4 estancias apiladas sin canvas, piezas en un fotograma fijo.
+- **Rendimiento**: ticker a 0,05-0,16 ms por fotograma (máx. 0,9). Con rAF real en la casa con WebGL: 137 fps y peor fotograma de 8,6 ms a 1440 y a 390 (umbral: 50 fps).
+
+### Pendientes nuevos
+- [FALTA] Imágenes de IA de `PROMPTS_IMAGENES.md`: `assets-demo/casa-salon.jpg`, `casa-cocina.jpg`, `casa-dormitorio.jpg`, `casa-bano.jpg` (misma vivienda) y el par `assets-demo/bano-plano.jpg` + `assets-demo/bano-plano-obra.jpg` (mismo encuadre).
+- [DEMO] Textos de las 4 estancias (`HOUSE`), nombres y notas de los 4 proyectos sobre fotos demo, y las 14 fotos de `public/img-demo/`. Todo sigue en `demo-content.js`.
+
+---
+
+## v6 · 2con2estudio — ajustes del cliente (2026-11-05)
+
+| Petición | Qué se hizo | Verificación (Playwright MCP, 1440 y 390) |
+|---|---|---|
+| Dormitorio de la casa (estancia 03/04) parecía pequeño | Sustituido por un dormitorio amplio con roble, cama baja con banco, ventanal y baño en suite (Clay Banks, Unsplash). Nuevo mapa de profundidad (Depth Anything v2) y línea [DEMO] actualizada | Captura de la estancia 03 en WebGL; sin errores |
+| Piso Eixample: foto de piso moderno reformado o antes/después con IA del mismo piso | No hay generador de imágenes en la sesión, así que no se inventó ninguna. Ahora: foto de piso reformado (Franco Debartolo). Preparado: componente `Phases.jsx` (Antes · Durante · Después, barrido por clip-path, avance automático cada 3,2 s a la vista, botones `aria-pressed`, fundido en reduced-motion). «Durante» es la foto actual en obra (`proj-obra`). Se activa solo cuando existen `assets-demo/proj-obra-antes.jpg` y `proj-obra-despues.jpg` (prompts de edición en `PROMPTS_IMAGENES.md`) y se ejecuta `npm run assets:demo` | Probado con sustitutos temporales (luego borrados): empieza en Antes, avanza solo a Durante y el clic lleva a Después |
+| Estrellas en las reseñas | `Stars.jsx`: SVG monocromo (contorno de 1 px + relleno recortado, admite medias), `role="img"` con «5 de 5 estrellas». Lucía M. 5, Javier y Marta 4,5, Andrés R. 4,5. [DEMO]: valoraciones inventadas, fuera del JSON-LD (sin AggregateRating). Conflicto con «sin iconos de relleno» del design.md: se acepta porque lo pide el cliente, en tinta y sin color | Etiquetas «5 de 5» y «4,5 de 5» ×2 |
+| FAQ al pasar el ratón | Con hover y puntero fino, la respuesta se abre al pasar por encima (intención de 140 ms, una abierta a la vez para que la lista no salte) y se cierra al salir de la lista. El clic la fija o la suelta. Teclado y táctil: `<details>` nativo | Hover 1.ª → `10000`; hover 3.ª → `00100`; salir → `00000`; clic fija la 2.ª → `01000`; Enter con teclado abre |
+| No tienen ubicación de estudio | Retirado `[FALTA: dirección postal]` de la web y de pendientes; el JSON-LD conserva solo la ciudad (real) | Contacto muestra «Valencia» |
+
+**Pendientes actualizados**: [FALTA] `assets-demo/proj-obra-antes.jpg` y `assets-demo/proj-obra-despues.jpg` (IA, mismo encuadre que `proj-obra.jpg`), más los de v5 (casa coherente y par del baño). La dirección postal ya no es un pendiente.
+
+### v6.1 · Antes / durante / después del Piso Eixample activado (2026-11-05)
+- El cliente generó con IA `assets-demo/proj-obra-antes.jpg` (piso antiguo: terrazo, molduras, lámpara de cristal, sofás de flores, radiador) y `proj-obra-despues.jpg` (reformado: techo con foseado, sofá modular, balconeras verdes conservadas) a partir de `proj-obra.jpg`.
+- **Encuadre**: «antes» casa casi al píxel con la obra (puerta del fondo, balconeras y techo). «Después» es la misma estancia con la cámara ~3 % desplazada y algo más cerrada; se acepta porque con el barrido no se nota.
+- **Resolución**: las de IA son de 1536 px. El script ya no amplía: la serie de fases se limita a 640/1280/1536 (la caja del proyecto mide ~835 px CSS).
+- **Verificación (Playwright, 1440 y 390)**: las pestañas aparecen, empiezan en «Antes» y «Durante» y «Después» cambian con barrido. Fuentes `proj-obra-{antes,,despues}-1280/640.avif`. Consola y red sin errores.
+- Pendientes de IA restantes: casa coherente (4 estancias) y par del baño (`PROMPTS_IMAGENES.md`).
+
+### v6.2 · Piso Eixample: controles fuera de la imagen y foto entera (2026-11-05)
+- **Problemas del cliente**: los botones Antes/Durante/Después estaban dentro de la foto y la tapaban; el hover de los proyectos la encogía (inset 3 %); se veía borrosa.
+- **Causa de la borrosidad**: el hueco era vertical 4:5, así que de una foto 3:2 de 1536 px solo se veía ~53 % del ancho, ampliado.
+- **Cambios**: orden de proyectos Baño Campanar (vertical) → Cocina Ruzafa (pasa a vertical) → **Piso Eixample (horizontal 3:2, entero, sin recorte)** → Cocina Benimaclet, para no juntar dos horizontales. Las tres fases miden exactamente 1536 × 1024. La foto tiene un ancho máximo de 70svh × 1,5 para que foto y controles quepan en pantalla. Controles debajo: `← 02 / 03 · DURANTE →` (el nombre entra con animación) y una línea de proceso en 3 tramos que se rellena con el avance automático (3,2 s). Las flechas se desactivan en los extremos y paran el avance; ← → con teclado. Sin efecto hover de recuadro en esta foto.
+- **Verificación (Playwright, 1440 y 390)**: orden `l75 · l57 · wide · l75`. Foto 945 × 630 px CSS con `proj-obra-*-1536.avif` (1440) y 340 × 227 con `-640` (390). La barra queda dentro del viewport (bottom 836/900). Avance real Antes → Durante → Después con la línea rellenándose. Flechas y teclado correctos. Consola y red sin errores.
+- **Nitidez en Retina**: con 1536 px va justa a DPR 2. Si el cliente exporta las versiones de IA a ≥ 2400 px, basta sustituir `assets-demo/proj-obra-{antes,despues}.jpg` y ejecutar `npm run assets:demo`.
+
+### v6.3 · Proyectos reordenados y Benimaclet vertical (2026-11-05)
+- **Orden y layout**: Baño Campanar `l75` (sin tocar) → **Piso Eixample `duo`** (foto 3:2 entera a la derecha, 7 columnas, con la barra de fases debajo; título y datos a la izquierda, alineados abajo) → **Cocina Ruzafa `full`** (vuelve a horizontal a sangre, como en v5) → Cocina Benimaclet `l75`.
+- **Benimaclet**: la foto anterior era horizontal (3200 × 1933) en un hueco vertical 4:5 y se veía recortada. Sustituida por una vertical de nogal oscuro y negro (Marina Nazina, Unsplash, original 3840 × 5760); se publica a 640–2400.
+- **Comprobado**: ninguna foto demo se amplió al descargar (originales de 3400 a 7008 px de ancho).
+- **Verificación (Playwright, 1440 y 390)**: cajas a 1440: Baño 741 × 926, Eixample 741 × 494 (`-1280`, 1536 px disponibles para Retina), Ruzafa 1430 × 715 (`-1920`), Benimaclet 741 × 926 (`-1280`). Consola y red sin errores.
+- **Medidas recomendadas** si el cliente quiere sustituir fotos: vertical 4:5 (Baño, Benimaclet) ≥ 1600 × 2000 px, ideal 2400 × 3000; horizontal a sangre 2:1 (Ruzafa) ≥ 2880 × 1440 px; Eixample 3:2 ≥ 1600 × 1067 px, ideal 2400 × 1600 (las tres fases iguales).

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../i18n/index.jsx';
 import { useTick, useViewport, reducedMotion, tickerState } from '../lib/hooks.js';
-import { CLIENT_PHOTOS } from '../content/business.js';
+import { DEMO_PHOTOS } from '../content/demo-content.js';
+import { DEMO_IMAGES } from '../content/demo-images.js';
 import Picture, { imgSrc } from '../components/Picture.jsx';
 import Reveal from '../components/Reveal.jsx';
 import { Button } from '../components/ui.jsx';
@@ -10,7 +11,11 @@ import { Button } from '../components/ui.jsx';
 // Un canvas superpuesto «pinta» la foto real a lo largo del rastro del puntero (pincel radial de
 // radio fijo, desvanecimiento por fotograma, limpieza tras inactividad). En táctil, un cursor
 // fantasma recorre el dibujo cuando nadie lo toca. Botón para ver la obra entera (teclado / a11y).
-const ID = 'bano-gres-piedra';
+// [DEMO-IMG] Baño de demostración a 2400 px. Capa base: su dibujo derivado (mismo encuadre píxel a
+// píxel). Si se suelta assets-demo/bano-plano-obra.jpg (par «en obra» del mismo encuadre), el script
+// de assets lo usa como capa base en lugar del dibujo.
+const ID = 'bano-plano';
+const OBRA = !!DEMO_IMAGES[ID]?.obra; // ¿hay par real «en obra» del mismo encuadre?
 const FADE = 0.016; // opacidad que pierde la máscara por fotograma
 const IDLE_FRAMES = 140;
 
@@ -25,9 +30,12 @@ export default function PlanReveal() {
   useEffect(() => {
     setCoarse(window.matchMedia('(pointer: coarse)').matches);
     if (reducedMotion) return;
+    // Nitidez: se elige el ancho nativo que cubre la caja a devicePixelRatio (sin escalar por encima)
+    const r = box.current?.getBoundingClientRect();
+    const want = Math.round((r?.width || 600) * Math.min(2, window.devicePixelRatio || 1) * 1.05);
     const img = new Image();
     img.decoding = 'async';
-    img.src = imgSrc(ID, 1100);
+    img.src = imgSrc(ID, want, 'webp');
     img.onload = () => { st.current.img = img; };
   }, []);
 
@@ -36,7 +44,7 @@ export default function PlanReveal() {
     const c = canvas.current; const b = box.current; const s = st.current;
     if (!c || !b) return;
     const r = b.getBoundingClientRect();
-    const dpr = Math.min(1.5, window.devicePixelRatio || 1);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
     if (Math.round(r.width * dpr) === c.width && Math.round(r.height * dpr) === c.height) return;
     s.w = r.width; s.h = r.height; s.dpr = dpr;
     c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
@@ -93,6 +101,7 @@ export default function PlanReveal() {
     m.fillRect(0, 0, s.mask.width, s.mask.height);
     // Composición: foto (cover) recortada por la máscara
     const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     ctx.globalCompositeOperation = 'source-over';
     ctx.clearRect(0, 0, c.width, c.height);
     if (s.idle > IDLE_FRAMES) { m.clearRect(0, 0, s.mask.width, s.mask.height); s.dirty = false; s.last = null; return; }
@@ -112,12 +121,12 @@ export default function PlanReveal() {
         <p className="lede">{t('plan.lede')}</p>
         {!reducedMotion ? <p className="plan__hint">{coarse ? t('plan.hintTouch') : t('plan.hintPointer')}</p> : null}
         <Button variant="line" onClick={() => setFull((f) => !f)} aria-pressed={full}>{full ? t('plan.hide') : t('plan.show')}</Button>
-        <p className="plan__note label">{t('plan.note')}</p>
+        <p className="plan__note label">{t(OBRA ? 'plan.noteObra' : 'plan.note')}</p>
       </div>
       <div className={`plan__box ${full ? 'is-full' : ''}`} ref={box} data-logo="plate"
         onPointerMove={onMove} onPointerDown={onMove} onPointerLeave={onLeave}>
-        <Picture id={ID} variant="plano" alt={t('plan.alt')} sizes="(max-width: 767px) 100vw, 50vw" className="plan__pic" />
-        <Picture id={ID} alt={pick(CLIENT_PHOTOS[ID])} sizes="(max-width: 767px) 100vw, 50vw" className="plan__pic plan__pic--photo" aria-hidden={!full} />
+        <Picture id={ID} variant="plano" alt={t(OBRA ? 'plan.altObra' : 'plan.alt')} sizes="(max-width: 899px) 100vw, 58vw" className="plan__pic" />
+        <Picture id={ID} alt={pick(DEMO_PHOTOS[ID])} sizes="(max-width: 899px) 100vw, 58vw" className="plan__pic plan__pic--photo" aria-hidden={!full} />
         {!reducedMotion ? <canvas ref={canvas} className="plan__canvas" aria-hidden="true" /> : null}
       </div>
     </div>

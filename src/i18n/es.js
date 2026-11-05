@@ -20,7 +20,7 @@ export default {
     lede: 'Un estudio, dos personas y la misma obra de principio a fin.',
     body: 'Bea Pérez y Gonzalo Pau. Reformas de vivienda e interiorismo en Valencia.',
     cta: 'Solicitar presupuesto', secondary: 'Ver proyectos',
-    caption: 'Roble y grafito · referencia de acabados',
+    caption: 'Salón · proyecto de demostración',
   },
   studio: {
     title: 'Quien diseña, construye',
@@ -35,7 +35,18 @@ export default {
     title: 'Proyectos',
     lede: 'Cuatro espacios contados por sus materiales.',
     m2: 'm²', year: 'Año', type: 'Tipo', reference: 'Referencia',
+    demo: 'Proyecto de demostración',
+    phases: 'Fases de la obra',
+    prev: 'Fase anterior', next: 'Fase siguiente',
+    phase: { antes: 'Antes', durante: 'Durante', despues: 'Después' },
   },
+  house: {
+    title: 'Una vivienda, estancia a estancia',
+    room: 'Estancia',
+    note: 'Proyecto de demostración',
+    aria: 'Recorrido por una vivienda de demostración',
+  },
+  loader: { skip: 'Saltar', label: 'Cargando 2con2estudio' },
   plan: {
     title: 'Del plano a la obra',
     lede: 'Primero el dibujo; después, la obra.',
@@ -43,7 +54,9 @@ export default {
     hintTouch: 'Desliza el dedo sobre el dibujo para descubrir la obra.',
     show: 'Ver la obra completa', hide: 'Volver al dibujo',
     note: 'Dibujo generado a partir de la fotografía, con fines ilustrativos.',
-    alt: 'Dibujo de líneas del baño: bañera exenta, hornacina y sanitario suspendido',
+    noteObra: 'Imagen de demostración generada: mismo encuadre en obra y terminado.',
+    altObra: 'El mismo baño en obra: ladrillo visto, rozas de fontanería y sin sanitarios',
+    alt: 'Dibujo de líneas del baño: encimera de piedra continua, espejo en arco e inodoro',
   },
   services: {
     title: 'Todo tipo de reformas',
@@ -58,6 +71,7 @@ export default {
   testimonials: {
     title: 'Lo que cuentan',
     tag: 'Testimonio ficticio · demo',
+    stars: '{n} de 5 estrellas',
   },
   faq: { title: 'Preguntas' },
   contact: {
@@ -105,7 +119,7 @@ export default {
   },
   footer: {
     contact: 'Contacto', follow: 'Síguenos',
-    demo: 'Contenido de demostración: proyectos, cifras, testimonios y preguntas son ilustrativos.',
+    demo: 'Contenido de demostración: proyectos, cifras, testimonios y preguntas son ilustrativos. Las fotografías son de Unsplash (proyectos de demostración, no obras del estudio).',
     rights: 'Todos los derechos reservados.',
     privacy: 'Privacidad',
     top: 'Volver arriba',
