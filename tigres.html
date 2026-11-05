@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mundo Tigre</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #e6f2ff; color: #0a1a2b; line-height: 1.6; }
+  header { background: linear-gradient(#4aa3ff, #1e6fd9); color: #fff; text-align: center; padding: 3rem 1rem; }
+  header h1 { font-size: 3rem; }
+  header p { font-size: 1.2rem; }
+  main { max-width: 800px; margin: auto; padding: 1.5rem 1rem; }
+  section { background: #fff; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px #0002; border-left: 6px solid #1e6fd9; }
+  h2 { margin-bottom: .5rem; color: #14509e; }
+  ul { padding-left: 1.2rem; }
+  button { background: #1e6fd9; color: #fff; border: 0; padding: .8rem 1.5rem; font-size: 1.1rem; border-radius: 99px; cursor: pointer; }
+  button:hover { background: #14509e; }
+  #rugido { font-size: 1.3rem; margin-top: .8rem; }
+  footer { text-align: center; padding: 1.5rem; color: #3a5a7a; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐯 Mundo Tigre</h1>
+  <p>El felino más grande del planeta</p>
+</header>
+<main>
+  <section>
+    <h2>Datos curiosos</h2>
+    <ul>
+      <li>Cada tigre tiene un patrón de rayas único, como una huella dactilar.</li>
+      <li>Su piel también está rayada, no solo el pelo.</li>
+      <li>Pueden pesar hasta 300 kg y medir más de 3 metros.</li>
+      <li>A diferencia de otros gatos, les encanta el agua y nadan muy bien.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Subespecies</h2>
+    <ul>
+      <li><strong>Tigre de Bengala:</strong> el más numeroso, vive en la India.</li>
+      <li><strong>Tigre siberiano:</strong> el más grande, de bosques fríos.</li>
+      <li><strong>Tigre de Sumatra:</strong> el más pequeño y oscuro.</li>
+      <li><strong>Tigre de Indochina:</strong> habita selvas del sudeste asiático.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>¡Haz rugir al tigre!</h2>
+    <button id="btn">Rugir</button>
+    <p id="rugido">Rugidos: 0</p>
+  </section>
+</main>
+<footer>Hecho con 💙 para los amantes de los tigres</footer>
+<script>
+  let n = 0;
+  const frases = ["¡GRRR!", "¡ROAAAR!", "¡GRAAAU!", "¡RRRAAWR!"];
+  document.getElementById("btn").onclick = () => {
+    n++;
+    document.getElementById("rugido").textContent =
+      frases[n % frases.length] + " Rugidos: " + n;
+  };
+</script>
+</body>
+</html>
