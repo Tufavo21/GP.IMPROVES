@@ -1,26 +1,31 @@
-import { IMAGES } from '../data/images.js';
-import { asset } from '../lib/asset.js';
+import { IMAGES } from '../content/images.js';
 
-// <picture> AVIF + WebP con dimensiones explícitas (sin CLS). `priority` desactiva la carga diferida.
-export default function Picture({ id, alt, sizes, priority = false, className, style }) {
+// <picture> WebP + JPG con dimensiones explícitas (sin CLS). Carga diferida salvo `priority`.
+// variant: '' | 'bn' | 'plano' (versiones derivadas generadas por scripts/make-assets.mjs)
+export default function Picture({ id, variant = '', alt, sizes = '100vw', priority = false, className, imgClassName, style, ...rest }) {
   const m = IMAGES[id];
-  const set = (ext) => m.widths.map((w) => `${asset(`img/${id}-${w}.${ext}`)} ${w}w`).join(', ');
-  const fallbackW = m.widths[Math.min(1, m.widths.length - 1)];
+  if (!m) return null;
+  const name = variant ? `${id}-${variant}` : id;
+  const set = (ext) => m.widths.map((w) => `/img-cliente/${name}-${w}.${ext} ${w}w`).join(', ');
+  const mid = m.widths[Math.min(1, m.widths.length - 1)];
   return (
-    <picture>
-      <source type="image/avif" srcSet={set('avif')} sizes={sizes} />
+    <picture className={className} style={style} {...rest}>
       <source type="image/webp" srcSet={set('webp')} sizes={sizes} />
       <img
-        src={asset(`img/${id}-${fallbackW}.webp`)}
+        src={`/img-cliente/${name}-${mid}.jpg`}
+        srcSet={set('jpg')}
+        sizes={sizes}
         width={m.width}
         height={m.height}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         fetchPriority={priority ? 'high' : undefined}
         decoding={priority ? 'sync' : 'async'}
-        className={className}
-        style={style}
+        className={imgClassName}
+        draggable="false"
       />
     </picture>
   );
 }
+
+export const imgSrc = (name, w, ext = 'webp') => `/img-cliente/${name}-${w}.${ext}`;

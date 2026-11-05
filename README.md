@@ -1,73 +1,56 @@
-# 2con2estudio
+# 2con2estudio — web v4 «Atelier Mono»
 
-Web de 2con2estudio (Bea Pérez y Gonzalo Pau, Valencia). React + Vite + Motion, con una función serverless para el formulario «Cuéntanos tu reforma».
-
-Dirección de diseño (v3): monografía suiza sobre papel masilla, con mucho movimiento ligado al scroll. Las versiones anteriores (Showroom brutalista y galería blanca tipo Niva) están descritas en `docs/skills-log.md`.
+Web de práctica de 2con2estudio (Bea Pérez y Gonzalo Pau, Valencia): diseño de interiores y ejecución de obra.
+React + Vite + Motion + Lenis, bilingüe ES/EN, editorial en blanco y negro. La v3 (monografía suiza) está archivada en `legacy/2con2-v3/` y en el historial de git.
 
 ## Comandos
 
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm run dev:test   # http://localhost:5174, modo test: usa el baremo DEMO y permite ?result=1
-npm run build
-npm test           # tests del baremo y de la función serverless
-npm run assets     # regenera imágenes AVIF/WebP, favicons, OG y manifest desde assets-cliente/
+npm run build      # dist/ (incluye sitemap.xml y robots.txt)
+npm run preview    # http://localhost:4173
+npm test           # baremo y validación del formulario
+npm run assets     # regenera fotos (WebP/JPG, B/N, plano), favicons, OG y manifest desde assets-cliente/
 ```
 
-## Variables de entorno (servidor)
+## Dónde está cada cosa
 
-Configúralas en el panel de Vercel (o Netlify). **Nunca** en el cliente ni en el repositorio. Hay una plantilla en `.env.example`.
+| Archivo | Contenido |
+|---|---|
+| `src/content/business.js` | **Datos reales** del cliente y marcadores `[FALTA]` (`SHOW_PLACEHOLDERS`). |
+| `src/content/demo-content.js` | **Todo lo inventado** `[DEMO]`: roles, cifras, nombres y m² de proyectos, servicios, proceso, testimonios ficticios, FAQ y EN del eslogan. `DEMO_ENABLED = false` retira lo que solo existe con datos inventados. |
+| `src/content/pricing.js` | Baremo €/m² por tipo y acabados, **vacío** (`null`) y `SHOW_ESTIMATE = false`. |
+| `src/i18n/es.js`, `en.js` | Textos de interfaz. |
+| `src/lib/ticker.js`, `spring.js`, `hooks.js` | Kit de movimiento: rAF único con tiers, muelles a mano (pasos de 1 ms), vigilante de viewport, Lenis. |
+| `src/lib/submit.js` | `submitRequest()` y adaptadores de envío. |
 
-| Variable | Obligatoria | Uso |
-|---|---|---|
-| `RESEND_API_KEY` | Sí | Clave de la API de [Resend](https://resend.com). |
-| `CONTACT_TO_EMAIL` | Sí | Destino de las solicitudes. No aparece en el código ni en el repositorio. |
-| `CONTACT_FROM_EMAIL` | Recomendada | Remitente, p. ej. `2con2estudio <solicitudes@tu-dominio>`. Debe ser un dominio verificado en Resend. Sin ella usa `onboarding@resend.dev` (solo pruebas). |
-| `ALLOWED_ORIGIN` | Opcional | Origen permitido, p. ej. `https://tu-dominio`. Si se define, se rechazan otros orígenes. |
-| `VITE_SITE_URL` | Sí al construir | URL pública del sitio para canonical, OG y JSON-LD. [FALTA: dominio definitivo] |
+## Envío de solicitudes — [FALTA: servicio de envío]
 
-## Cómo funciona el envío
+No hay endpoint. `submitRequest()` (`src/lib/submit.js`) usa un adaptador:
 
-`POST /api/solicitud` (`api/solicitud.js`):
+- **Por defecto, `mailtoAdapter`**: abre el programa de correo del visitante con la solicitud redactada para `pableteizquierdoperez@gmail.com`. `mailto:` no puede adjuntar archivos, así que la web le pide que adjunte allí sus fotos.
+- **Para enchufar un servicio o backend**:
+  1. Define `VITE_SUBMIT_ENDPOINT=https://…` al construir. Se usará `httpAdapter`, que hace `POST` `multipart/form-data` con los campos (`nombre`, `email`, `telefono`, `tipo`, `acabados`, `m2`, `descripcion`, `privacidad`) y las fotos en `fotos` (varias). Sirve para Formspree, Basin, Getform, una función serverless propia (Vercel/Netlify + Resend/Postmark) o cualquier backend que reciba multipart. El destino del email se configura en ese servicio.
+  2. O registra tu propio adaptador: `setAdapter(async ({ data, photos, labels, lang }) => ({ ok: true, mode: 'http' }))`.
+- La v3 tenía una función serverless con Resend (JSON + base64); está en `legacy/2con2-v3/api/` como referencia, no conectada.
+- Validación en cliente: todo obligatorio salvo las fotos; descripción ≥ 10 caracteres; fotos JPG/PNG/WebP/HEIC, hasta 8, 10 MB cada una. Hay un campo trampa (`website`) para cuando exista backend. **Valida también en el servidor.**
 
-1. Honeypot (`website`): si viene relleno responde 200 y no envía nada.
-2. Límite de frecuencia: 5 solicitudes por hora y por IP, en memoria de la instancia. Es una defensa básica; si hay abuso, sustituirla por Upstash Ratelimit o similar.
-3. Validación con las mismas reglas que el cliente (`shared/schema.js`): textos libres de al menos 10 caracteres, 1 a 8 fotos, solo JPG/PNG/WebP/HEIC comprobados por sus bytes (no por la extensión), 1,5 MB por foto y 3,1 MB en total.
-4. Envío por Resend al destinatario `CONTACT_TO_EMAIL`, con todos los datos, el baremo si procede y las fotos adjuntas.
-5. No se guarda nada: ni base de datos ni logs con datos personales.
+## Baremo
 
-**Límite de tamaño:** Vercel admite 4,5 MB por petición y las fotos viajan en base64 (+33 %). Por eso el navegador reduce cada foto a ≈1,5 MB como máximo y, si el conjunto supera 3,1 MB, las vuelve a comprimir. Las fotos HEIC que el navegador no sabe descodificar solo se aceptan si ya pesan menos del límite.
+Rellena `min`/`max` (€/m²) en `src/content/pricing.js` y pon `SHOW_ESTIMATE = true`. El formulario mostrará, al elegir tipo, acabados y m², un «rango aproximado y no vinculante». Mientras sea `false` no aparece ninguna cifra.
 
-## Baremo y estimación
+## Variables de entorno
 
-`src/data/pricing.js` contiene la tabla €/m² por tipo de reforma y acabados con todos los valores en `null`, y `SHOW_ESTIMATE = false`. Mientras esté así, la web no muestra ninguna cifra y tras enviar dice: «Hemos recibido tu solicitud. Te enviaremos una valoración orientativa.»
+| Variable | Uso |
+|---|---|
+| `VITE_SITE_URL` | URL pública (canonical, OG, JSON-LD, sitemap). [FALTA: dominio definitivo]; sin ella se usa `https://2con2estudio.example`. |
+| `VITE_SUBMIT_ENDPOINT` | Opcional. Endpoint multipart para las solicitudes. |
 
-Para activarlo: rellena `min` y `max` (€/m²) de cada celda y pon `SHOW_ESTIMATE = true`. Aparecerá la horquilla con el texto legal «Estimación orientativa no vinculante, sujeta a visita y presupuesto definitivo.», y el email incluirá el cálculo. Reforma integral calcula sobre los m² de la vivienda; el resto, sobre la suma de las estancias.
+## Verificación (regla 6)
 
-Los valores DEMO (`src/data/pricing.demo.js`) solo se cargan con `vite --mode test` y en los tests; no entran en el build de producción.
+Con `npm run dev` y Playwright MCP: `browser_run_code_unsafe` con `filename: scripts/verify-shots.cjs` hace capturas por sección y por scroll en 25 % (cambia `W` a 390 para móvil) en `shots/v4/`. `node scripts/contact-sheet.mjs shots/v4/1440 hoja.jpg` monta una hoja de contacto. Las animaciones se avanzan con `window.__cfTicker.step(n)`; `window.__cfTicker.stats()` da ms por fotograma.
 
-## Datos pendientes del cliente
+## Pendiente del cliente
 
-Se muestran como etiquetas `[FALTA: …]` mientras `SHOW_PLACEHOLDERS = true` en `src/data/business.js`. Ponlo a `false` al publicar.
-
-- Fotos originales en alta resolución (las actuales son ampliaciones de capturas).
-- Confirmar si son proyecto propio la cocina roble/grafito y la cocina blanca compacta.
-- Traducción al inglés del eslogan (ahora provisional).
-- Logo vectorial y si el marco debe ser un cuadrado cerrado (en la imagen aportada está abierto por abajo).
-- Roles, bio y foto de Bea y Gonzalo; nombre, ubicación y año de cada proyecto.
-- Lista de servicios y proceso de trabajo; zona de trabajo.
-- Dirección postal, horarios, NIF y datos del responsable para la política de privacidad.
-- Dominio definitivo y baremo.
-- Verificar un dominio en Resend para el remitente.
-
-## Estructura
-
-- `src/` interfaz; `src/i18n/` textos ES/EN; `src/data/` datos del negocio, baremo e imágenes.
-- `api/` función serverless; `shared/` validación común.
-- `assets-cliente/` originales del cliente (no se publican); `public/img/` versiones optimizadas.
-- `legacy/` proyectos anteriores archivados.
-
-## Reseñas de Google
-
-Edita `src/data/reviews.js`: añade cada reseña **real** (texto literal, nombre, valoración y fecha) y, si quieres, el enlace de tu ficha de Google y la media y el número reales. La sección se muestra sola cuando hay reseñas. No añadas reseñas de ejemplo ni cambies valoraciones: es engañoso para los clientes y ilegal en la UE.
+Ver `docs/skills-log.md` (lista completa de `[FALTA]` y `[DEMO]`).

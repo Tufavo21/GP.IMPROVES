@@ -66,3 +66,69 @@ Sustituye a «Vano de obra». Con el scroll, un láser de nivel amarillo (la her
 - No es un antes/después de un mismo proyecto: el plano es un dibujo genérico de cotas, sin medidas ni datos del proyecto, y por eso las cotas solo llevan palabras.
 - La rejilla del plano es una superficie de plano real, no un fondo decorativo (el detector la señala como aviso, aceptado).
 - Con prefers-reduced-motion: título completo y foto estática, sin plano ni láser.
+
+---
+
+## v4 · 2con2estudio — web de test · «Atelier Mono» (2026-11-05)
+
+**Cliente**: 2con2estudio — web de test/práctica. **Estilo**: Design A «Atelier Mono» (elegido por el cliente; Fases -1 y 1 omitidas). **Arquitectura**: B) React + Vite + Motion (portfolio visual de ticket alto; las piezas del kit viven mejor como componentes JSX). **Nivel de movimiento**: 2.
+
+**Skills**: `impeccable` (contexto + craft floor + detector: 0 hallazgos). `review-animations` no está instalada en esta máquina → se usó `improve-animations` (auditoría rápida, 3 hallazgos corregidos). `redesign-existing-projects` no se usó (indicado por el cliente), aunque sí existía una web previa (v3), archivada en `legacy/2con2-v3/`.
+
+**Kit (Regla 7)**: `clinica-ferrer/src/` no existe en esta máquina; se reimplementaron desde la descripción: `src/lib/ticker.js` (rAF único, fases read/write, tiers, vigilante si el rAF se congela, `window.__cfTicker.step/stats`), `src/lib/spring.js` (tension/friction, masa 1, pasos de 1 ms), `src/lib/hooks.js` (`useTick`, vigilante de viewport en el ticker, Lenis), `src/components/Reveal.jsx`.
+
+### Recap Fase 5
+| Regla | Cómo se cumple |
+|---|---|
+| 1 Firma | «Del diseño a la obra» con el lema real: «DISEÑO DE INTERIORES» entra letra a letra con desenfoque (M15); con el hero fijado, «EJECUCIÓN DE OBRA» pasa de contorno a relleno letra a letra mientras la foto (roble/grafito) pasa de B/N a color y se abre a sangre con parallax. Reduced-motion/sin JS: fotograma final. |
+| 2 Extensión | 1440px: 19 334 px de scroll (~190 pasos de rueda); 390px: 18 282 px. |
+| 3 Formulario | Nombre, email, teléfono, tipo, **acabados** (añadido: el baremo es por tipo y acabados), m², descripción ≥10, fotos opcionales (8 × 10 MB, vista previa), privacidad. Todo obligatorio salvo fotos. |
+| 4 ES/EN | Selector en la nav (aria-pressed), `<html lang>`, title, meta y JSON-LD se sincronizan. |
+| 5 Logo | Muestreo de 3 puntos bajo el logo con `data-logo`: negro sobre papel, blanco sobre tinta (pie y menú), placa papel sobre fotos heterogéneas (hero abierto, proyectos, proceso). Sin caja propia. |
+| 6 Verificación | Playwright MCP (ver abajo). |
+| 7 Movimiento | Nivel 2: BASE + M15, M17, M10, M22. |
+
+**Piezas del MENÚ usadas**: M10 (del plano a la obra: dibujo derivado de la foto + pincel que pinta la foto real; cursor fantasma en táctil; botón accesible), M15 (hero), M17 (proceso fijado en 5 tramos con imagen que evoluciona y rail de guiones), M22 (cifras [DEMO] del estudio). **Descartadas**: M1-M9, M11-M14, M16, M18-M22 salvo las anteriores (no las pide el design.md; M1/WebGL y 7.6 no aplican sin petición 3D). Anti-repetición: combinación distinta de la v3 (máscara + cinta + pasillo horizontal + láser).
+
+### Conflictos resueltos
+- **Web previa**: el encargo decía «no hay web previa», pero existía la v3; se archivó en `legacy/2con2-v3/` (src, api, shared, tests, scripts) y se rehízo desde cero.
+- **Rutas**: el encargo cita `public/img-cliente/`; los originales estaban en `assets-cliente/`. Se mantienen ahí (no publicados) y `npm run assets` genera `public/img-cliente/`.
+- **Firma B/N → color**: la cocina de mármol es casi acromática y el cambio no se percibía; el hero usa la cocina roble/grafito con pie «referencia de acabados» (posible foto de exposición) y por eso no se repite como proyecto.
+- **Antes/después (M10)**: no hay parejas reales; la capa «antes» es un dibujo generado de la propia foto y se rotula como ilustración.
+- **--mute #8C8A85** da 3.3:1 sobre papel: solo en texto grande/decorativo; etiquetas pequeñas en --ink-2.
+- **Errores del formulario**: sin color de acento (prohibido): línea de 2 px + icono cuadrado + texto en tinta.
+- **Craft floor vs brief**: display hasta 200px y numeración «01 / 07» en el margen se mantienen porque los fija el design.md; no hay eyebrows sobre los titulares.
+- **Testimonios ficticios**: permitidos para práctica; cada uno lleva la etiqueta visible «Testimonio ficticio · demo», desaparecen con `DEMO_ENABLED = false` y nunca van al JSON-LD.
+- **Email**: ahora es público y destino (antes vivía en una variable de servidor).
+
+### Hallazgos de la revisión (Before → After)
+| Antes | Después |
+|---|---|
+| Titulares con reveal sin espacios entre palabras («QUIENDISEÑA») | Espacio fuera de la máscara de cada palabra |
+| La foto del hero tapaba «EJECUCIÓN DE OBRA» antes de rellenarse | Relleno 0.02→0.44, color 0.06→0.46, apertura 0.48→1 |
+| Franja del hero mostraba solo el suelo | Foto centrada en la franja visible y desplazada al abrirse |
+| Lema del pie partido en «· EJECUCIÓN» y tilde pisando la línea | Dos líneas sin punto, interlineado 1 |
+| Etiqueta «Superficie aproximada (m²)» en 2 líneas sobre el valor | Etiqueta en una línea |
+| Pincel de M10 demasiado tenue | Pincel más opaco y desvanecimiento 0.016/fotograma |
+| Logo cambiaba con un fotograma de retraso (estado React) | Modo escrito en el DOM dentro del ticker |
+| Enlace del menú móvil no hacía scroll (Lenis parado) | `lenis.start()` + `scrollTo(..., { force: true })` |
+| Reduced-motion anulaba todas las transiciones | Solo se quita el movimiento; color y opacidad se mantienen |
+| Flood de botones 550 ms, etiquetas 350 ms, FAQ 450 ms | 280 / 200 / 250 ms |
+| Motion completo (436 KB JS) | LazyMotion + domAnimation (388 KB, 125 KB gzip) |
+| `fetchpriority` en minúscula (error de React) | `fetchPriority` |
+
+### Verificación Playwright MCP
+- Capturas 1440 y 390 por sección y en 0/25/50/75/100 % de página, hero y proceso (`shots/v4/`).
+- Ticker: 0.05–0.2 ms por fotograma (máx. 1.3 ms); canvas M10 se detiene fuera de viewport y tras 140 fotogramas sin interacción. No hay WebGL.
+- Formulario solo con datos inválidos: vacío → 8 errores y foco en el primero; valores erróneos → 6 mensajes concretos + archivo .txt rechazado; sin envío ni navegación.
+- Consola: 0 errores/avisos. Respuestas ≥400: 0. Anclas internas: todas existen. favicon.svg/.ico/16/32, apple-touch, manifest, og-image, sitemap.xml y robots.txt: 200.
+- `<head>`: title, description, canonical, OG/Twitter, JSON-LD solo con datos reales (sin eslogan EN, sin dirección inventada).
+- ES/EN: nav, titular, CTA, lema, title y `lang` cambian; vuelta a ES correcta.
+- Menú móvil: abre (logo blanco), cierra con Escape y navega a Proceso.
+- Reduced-motion: hero estático a color, proceso en lista, sin Lenis ni canvas.
+
+### Pendientes [FALTA]
+Dominio definitivo · servicio de envío · dirección postal · versión vectorial del logo y si el marco es cerrado · traducción EN del lema aprobada · baremo de precios · fotos de Bea y Gonzalo · originales en alta · responsable del tratamiento y NIF (privacidad).
+
+### Contenido [DEMO] (src/content/demo-content.js)
+Roles del equipo · cifras (12 años, 140 viviendas, 9800 m²) · nombre, m², año y tipo de 4 proyectos · desglose de 6 servicios · proceso en 5 pasos · 3 testimonios ficticios · 5 preguntas frecuentes · lema EN provisional.

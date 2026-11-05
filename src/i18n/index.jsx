@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import es from './es.js';
 import en from './en.js';
-import { BUSINESS } from '../data/business.js';
+import { BUSINESS } from '../content/business.js';
 import { syncHead } from '../lib/seo.js';
 
 const DICTS = { es, en };
@@ -22,7 +22,6 @@ const Ctx = createContext(null);
 
 export function I18nProvider({ children }) {
   const [lang, setLangState] = useState(initialLang);
-
   const setLang = useCallback((l) => {
     setLangState(l);
     try { localStorage.setItem(KEY, l); } catch { /* ignora */ }
@@ -35,9 +34,10 @@ export function I18nProvider({ children }) {
 
   const value = useMemo(() => {
     const dict = DICTS[lang];
-    // t('a.b', vars) devuelve texto, arrays u objetos del idioma activo.
     const t = (path, vars) => fill(get(dict, path), vars);
-    return { lang, setLang, t, dict };
+    // pick({es, en}) devuelve el valor del idioma activo de un objeto bilingüe de contenido
+    const pick = (o) => (o && typeof o === 'object' ? (o[lang] ?? o.es) : o);
+    return { lang, setLang, t, pick, dict };
   }, [lang, setLang]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

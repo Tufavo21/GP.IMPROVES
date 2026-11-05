@@ -1,147 +1,117 @@
 import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, m } from 'motion/react';
 import { useI18n } from '../i18n/index.jsx';
-import { asset } from '../lib/asset.js';
-import { BUSINESS } from '../data/business.js';
-import { Btn } from './ui.jsx';
+import { useTick, scrollToId, reducedMotion } from '../lib/hooks.js';
+import { getLenis } from '../lib/ticker.js';
+import { BUSINESS } from '../content/business.js';
+import { LOGO } from '../content/images.js';
+import { Button, Icon } from './ui.jsx';
 
-const LINKS = [['studio', '#estudio'], ['services', '#reformas'], ['projects', '#proyectos'], ['process', '#proceso'], ['faq', '#preguntas'], ['contact', '#contacto']];
-
-const parse = (c) => {
-  const m = c.match(/rgba?\(([^)]+)\)/);
-  if (!m) return null;
-  const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(Number);
-  return { r, g, b, a };
-};
-const lum = ({ r, g, b }) => {
-  const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
-  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-};
-const contrast = (l1, l2) => (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
-const PUTTY = { r: 202, g: 199, b: 180, a: 1 };
-
-// Elige logo blanco/negro según el fondo real bajo el logo (sin caja propia). Si ninguna versión alcanza
-// AA (4.5:1) o hay una foto debajo, añade una placa del color base de la sección detrás del logo.
-function useLogoTone(ref) {
-  const [tone, setTone] = useState({ ink: 'black', plate: null });
-  useEffect(() => {
-    let raf = 0;
-    // Muestrea cinco puntos del logo: si el fondo cambia dentro de él (p. ej. al cruzar una sección), usa placa.
-    const probe = (x, y) => {
-      const stack = document.elementsFromPoint(x, y).filter((n) => !n.closest('[data-logo-ui]'));
-      let bg = null; let image = false;
-      for (const n of stack) {
-        if (n.tagName === 'IMG' || n.tagName === 'VIDEO') { image = true; continue; }
-        const c = parse(getComputedStyle(n).backgroundColor);
-        if (c && c.a > 0.9) { bg = c; break; }
+// Logo adaptable: se mira qué hay bajo el centro del logo (atributo data-logo de la sección o foto):
+//  light → logo negro sin fondo · dark → logo blanco sin fondo · plate → placa papel + logo negro
+// (fotos heterogéneas, donde ninguna de las dos versiones se lee bien por sí sola).
+function useLogoMode(logoRef, headerRef, openRef) {
+  const current = useRef('light');
+  useTick((s) => {
+    if (!s.scrolled && s.frame % 20 !== 0) return;
+    const logo = logoRef.current; const header = headerRef.current;
+    if (!logo || !header) return;
+    const r = logo.getBoundingClientRect();
+    const pts = [[r.left + r.width / 2, r.top + r.height / 2], [r.left + 2, r.bottom - 2], [r.right - 2, r.top + 2]];
+    let next = 'light';
+    const found = pts.map(([x, y]) => {
+      const stack = document.elementsFromPoint(x, y);
+      for (const el of stack) {
+        if (header.contains(el)) continue;
+        const z = el.closest('[data-logo]');
+        if (z) return z.dataset.logo;
       }
-      bg = bg || PUTTY;
-      let base = PUTTY;
-      for (const n of stack) {
-        if (n.tagName !== 'SECTION' && n.tagName !== 'FOOTER') continue;
-        const c = parse(getComputedStyle(n).backgroundColor);
-        if (c && c.a > 0.9) { base = c; break; }
-      }
-      const L = lum(bg);
-      return { image, base, cb: contrast(L, 0), cw: contrast(L, 1) };
-    };
-    const measure = () => {
-      raf = 0;
-      const el = ref.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const pts = [[0.5, 0.5], [0.1, 0.1], [0.9, 0.1], [0.1, 0.9], [0.9, 0.9]].map(([a, b]) => probe(r.left + r.width * a, r.top + r.height * b));
-      const needsPlate = pts.some((p) => p.image || Math.max(p.cb, p.cw) < 4.5) || pts.some((p) => (p.cb >= p.cw) !== (pts[0].cb >= pts[0].cw));
-      const c0 = pts[0];
-      if (needsPlate) {
-        const Lp = lum(c0.base);
-        setTone({ ink: contrast(Lp, 0) >= contrast(Lp, 1) ? 'black' : 'white', plate: `rgb(${c0.base.r}, ${c0.base.g}, ${c0.base.b})` });
-      } else {
-        setTone({ ink: c0.cb >= c0.cw ? 'black' : 'white', plate: null });
-      }
-    };
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(measure); };
-    measure();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    const id = setTimeout(measure, 400);
-    return () => { cancelAnimationFrame(raf); clearTimeout(id); window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
-  }, [ref]);
-  return tone;
-}
-
-// La cabecera fija baja 36px al inicio (hueco de la barra amarilla) y se pega arriba al hacer scroll.
-function useHeaderTop() {
-  useEffect(() => {
-    let raf = 0;
-    const set = () => { raf = 0; document.documentElement.style.setProperty('--hdr-top', `${Math.max(0, 36 - window.scrollY)}px`); };
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(set); };
-    set();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('scroll', onScroll); };
-  }, []);
+      return 'light';
+    });
+    if (found.includes('plate')) next = 'plate';
+    else if (found.every((f) => f === 'dark')) next = 'dark';
+    else if (found.some((f) => f === 'dark')) next = 'plate'; // borde entre secciones: placa
+    // Se escribe directamente en el DOM (sin re-render de React) para que cambie en el mismo fotograma.
+    if (next !== current.current) { current.current = next; if (!openRef.current) header.dataset.mode = next; }
+  }, 'read');
+  return current;
 }
 
 export default function Header() {
   const { t, lang, setLang } = useI18n();
   const [open, setOpen] = useState(false);
+  const headerRef = useRef(null);
   const logoRef = useRef(null);
-  const tone = useLogoTone(logoRef);
-  useHeaderTop();
+  const openRef = useRef(false);
+  openRef.current = open;
+  const mode = useLogoMode(logoRef, headerRef, openRef);
+  const links = t('nav.links');
 
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    document.documentElement.classList.add('menu-open');
+    getLenis()?.stop();
+    return () => { document.removeEventListener('keydown', onKey); document.documentElement.classList.remove('menu-open'); getLenis()?.start(); };
   }, [open]);
 
+  const go = (id) => (e) => { e.preventDefault(); setOpen(false); scrollToId(id); };
+  const shownMode = open ? 'dark' : mode.current;
+
+  const LangSwitch = (
+    <div className="lang" role="group" aria-label={t('nav.lang')}>
+      {['es', 'en'].map((l) => (
+        <button key={l} type="button" className="lang__b" aria-pressed={lang === l} onClick={() => setLang(l)}>
+          <span aria-hidden="true">{l.toUpperCase()}</span>
+          <span className="sr-only">{l === 'es' ? 'Español' : 'English'}</span>
+        </button>
+      ))}
+    </div>
+  );
+
   return (
-    <>
-      <div className="bar">
-        <span>{t('bar.text')}</span>
-        <a href="#presupuesto">{t('bar.cta')}</a>
-      </div>
-
-      <header className="header" data-logo-ui>
-        <a
-          ref={logoRef}
-          className="logo"
-          href="#top"
-          aria-label={t('a11y.home')}
-          data-ink={tone.ink}
-          data-plate={tone.plate ? '' : undefined}
-          style={tone.plate ? { '--plate': tone.plate } : undefined}
-        >
-          <img className="logo-b" src={asset('logo-2con2estudio-negro.png')} width="480" height="442" alt="" />
-          <img className="logo-w" src={asset('logo-2con2estudio-blanco.png')} width="480" height="442" alt="" />
+    <header ref={headerRef} className="nav" data-mode={shownMode}>
+      <div className="nav__bar">
+        <a href="#top" className="nav__logo" ref={logoRef} onClick={go('top')} aria-label={t('nav.home')}>
+          <img className="nav__logo-img nav__logo-img--negro" src="/img-cliente/logo/logo-2con2estudio-negro-360.png" width={LOGO.width} height={LOGO.height} alt="" />
+          <img className="nav__logo-img nav__logo-img--blanco" src="/img-cliente/logo/logo-2con2estudio-blanco-360.png" width={LOGO.width} height={LOGO.height} alt="" />
         </a>
-
-        <div className="hr">
-          <a className="btn ig" href={BUSINESS.instagram.url} target="_blank" rel="noopener noreferrer" aria-label={t('a11y.instagram')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-              <rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.2" cy="6.8" r="0.7" fill="currentColor" />
-            </svg>
-          </a>
-          <div className="lang" role="group" aria-label={t('a11y.langGroup')}>
-            <button type="button" lang="es" aria-pressed={lang === 'es'} aria-label={t('a11y.langEs')} onClick={() => setLang('es')}>ES</button>
-            <button type="button" lang="en" aria-pressed={lang === 'en'} aria-label={t('a11y.langEn')} onClick={() => setLang('en')}>EN</button>
-          </div>
-          <Btn className="cta" href="#presupuesto">{t('nav.cta')}</Btn>
-          <button type="button" className="btn burger" aria-expanded={open} aria-controls="menu" aria-label={open ? t('a11y.closeMenu') : t('a11y.menu')} onClick={() => setOpen((o) => !o)}>
-            <i aria-hidden="true" /><span>{t('a11y.menuLabel')}</span>
+        <nav className="nav__links" aria-label="Principal">
+          {links.map(([id, label]) => (<a key={id} href={`#${id}`} onClick={go(id)} className="nav__link">{label}</a>))}
+        </nav>
+        <div className="nav__tools">
+          {LangSwitch}
+          <Button href="#presupuesto" variant="line" className="nav__cta">{t('nav.cta')}</Button>
+          <button type="button" className="nav__burger" aria-expanded={open} aria-controls="menu" onClick={() => setOpen((o) => !o)}>
+            {open ? <Icon.close /> : <Icon.menu />}
+            <span className="sr-only">{open ? t('nav.close') : t('nav.menu')}</span>
           </button>
         </div>
-
-        <nav id="menu" className="menu" data-open={open} aria-label={t('a11y.mainNav')}>
-          {LINKS.map(([k, href], i) => <a key={k} href={href} style={{ '--i': i }} tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>{t(`nav.${k}`)}</a>)}
-          <a className="menu-ig" href={BUSINESS.instagram.url} target="_blank" rel="noopener noreferrer" tabIndex={open ? 0 : -1}>Instagram {BUSINESS.instagram.handle}</a>
-          <Btn variant="white" href="#presupuesto" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>{t('nav.cta')}</Btn>
-        </nav>
-      </header>
-
-      <nav className="navlinks" aria-label={t('a11y.mainNav')} data-logo-ui>
-        {LINKS.map(([k, href]) => <a key={k} href={href}>{t(`nav.${k}`)}</a>)}
-      </nav>
-    </>
+      </div>
+      <AnimatePresence>
+        {open ? (
+          <m.div
+            id="menu" className="menu" data-logo="dark"
+            initial={reducedMotion ? false : { clipPath: 'inset(0 0 100% 0)' }}
+            animate={{ clipPath: 'inset(0 0 0% 0)' }}
+            exit={reducedMotion ? { opacity: 0 } : { clipPath: 'inset(0 0 100% 0)' }}
+            transition={{ type: 'spring', stiffness: 170, damping: 26 }}
+          >
+            <nav aria-label="Menú" className="menu__links">
+              {links.map(([id, label], i) => (
+                <a key={id} href={`#${id}`} onClick={go(id)} className="menu__link display">
+                  <span className="label menu__n">{String(i + 1).padStart(2, '0')}</span>{label}
+                </a>
+              ))}
+            </nav>
+            <div className="menu__foot">
+              <a href={BUSINESS.phone.href}>{BUSINESS.phone.intl}</a>
+              <a href={BUSINESS.instagram.url} target="_blank" rel="noopener noreferrer">{BUSINESS.instagram.handle}</a>
+            </div>
+          </m.div>
+        ) : null}
+      </AnimatePresence>
+    </header>
   );
 }
