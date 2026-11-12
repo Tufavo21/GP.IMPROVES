@@ -1,8 +1,54 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "dev", "runtimeExecutable": "npx", "runtimeArgs": ["vite", "--port", "5173", "--strictPort"], "port": 5173 },
-    { "name": "preview", "runtimeExecutable": "npx", "runtimeArgs": ["vite", "preview", "--port", "4173", "--strictPort"], "port": 4173 },
-    { "name": "hercas", "runtimeExecutable": "node", "runtimeArgs": ["node_modules/vite/bin/vite.js", "hercas", "--port", "5180", "--strictPort"], "port": 5180 }
+    {
+      "name": "dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5173",
+        "--strictPort"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--port",
+        "4173",
+        "--strictPort"
+      ],
+      "port": 4173
+    },
+    {
+      "name": "hercas",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "node_modules/vite/bin/vite.js",
+        "hercas",
+        "--port",
+        "5180",
+        "--strictPort"
+      ],
+      "port": 5180
+    },
+    {
+      "name": "committee-web",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "committee-web/node_modules/vite/bin/vite.js",
+        "committee-web",
+        "--config",
+        "committee-web/vite.config.js",
+        "--port",
+        "5190",
+        "--strictPort"
+      ],
+      "port": 5190
+    }
   ]
 }
