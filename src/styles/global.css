@@ -371,6 +371,11 @@ p { text-wrap: pretty; }
 .form__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
 .form__privacy { font-size: 14px; color: var(--ink-2); }
 .form__status { border-top: 1px solid var(--ink); padding-top: 14px; font-weight: 500; max-width: 60ch; }
+.form__status a { text-decoration: underline; text-underline-offset: 3px; }
+.form__preview { border: 1px solid var(--hair); padding: 12px 14px; max-width: 60ch; font-size: 14px; }
+.form__preview summary { cursor: pointer; font-weight: 500; }
+.form__preview p { margin: 10px 0 0; font-weight: 500; }
+.form__preview pre { margin: 10px 0 0; font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink-2); }
 @media (max-width: 899px) {
   .contact__info, .form { grid-column: 1 / -1; }
   .form__row--2, .form__row--3 { grid-template-columns: 1fr; }

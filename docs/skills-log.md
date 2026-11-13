@@ -304,3 +304,23 @@ Verificación Playwright: logo visible en el fotograma 0. Tras el primer paso de
 - **Comprobado**: ninguna foto demo se amplió al descargar (originales de 3400 a 7008 px de ancho).
 - **Verificación (Playwright, 1440 y 390)**: cajas a 1440: Baño 741 × 926, Eixample 741 × 494 (`-1280`, 1536 px disponibles para Retina), Ruzafa 1430 × 715 (`-1920`), Benimaclet 741 × 926 (`-1280`). Consola y red sin errores.
 - **Medidas recomendadas** si el cliente quiere sustituir fotos: vertical 4:5 (Baño, Benimaclet) ≥ 1600 × 2000 px, ideal 2400 × 3000; horizontal a sangre 2:1 (Ruzafa) ≥ 2880 × 1440 px; Eixample 3:2 ≥ 1600 × 1067 px, ideal 2400 × 1600 (las tres fases iguales).
+
+### v7 · Respuesta automática al formulario, modo DEMO (2026-11-13)
+Se añade un Worker de Cloudflare (`worker/`) y se conecta el formulario existente a `POST /api/lead`. **No se tocó el diseño, las animaciones ni los datos reales**; el front solo cambia la lógica de envío y los estados (`src/lib/submit.js`, `src/sections/Contact.jsx`), los textos de estado en `src/i18n/{es,en}.js` y ~5 líneas de CSS para el enlace y la vista previa del estado.
+- **Skills**: ninguna skill de diseño aplica (no hay cambios visuales). `impeccable` no se usó. Se aplicaron a mano las reglas de la regla 6 (verificación) y de privacidad del proyecto.
+- **Decisiones**:
+  - El Worker reutiliza `src/lib/validate.js` y `src/i18n/*.js`: una sola fuente de verdad para reglas y textos de tipos/acabados.
+  - Sin dependencias nuevas: la D1 se simula en local con `node:sqlite` (`worker/dev/`) para poder probar sin `wrangler`.
+  - `VITE_LEAD_ENDPOINT` activa el Worker; sin ella el formulario sigue en `mailto`, así que publicar este código no cambia nada hasta configurarlo.
+  - Fotos: hoy no se suben (solo se listaban en el `mailto`). Se mantiene así: solo viaja el número de fotos y el correo de confirmación pide enviarlas respondiendo. Nada de imágenes en la base de datos.
+  - Baja: `GET` pide confirmar y `POST` da de baja, porque los escáneres de correo abren los enlaces y un `GET` directo daría de baja a quien no lo pidió.
+  - `acabados` también se valida y guarda: es un campo obligatorio del formulario actual aunque no figuraba en el encargo.
+  - Se añadió `/api/booking` (webhook opcional) porque sin él «si no hay reserva» no puede saberse; está desactivado sin secreto.
+  - El borrador con IA queda desactivado y aislado (solo texto, solo al dueño).
+- **Conflictos resueltos**: `business.js` dice que el estudio no tiene dirección postal, pero el pie de los correos la exige → marcador `[FALTA: dirección postal]` en demo y bloqueo de envío fuera de demo hasta que se configure. El propio `.gitignore` no excluía `.env.local` ni `.dev.vars` → se añadieron.
+- **Verificación**:
+  - `npm test`: 21/21 (4 previas + 17 del Worker): validación, honeypot, límite por IP, lista blanca de demo, baja, recordatorios (máx. 2; respetan `booked` y `unsubscribed`), plantillas, IA y escaneo de claves.
+  - Servidor local real (`worker/dev/server.mjs`) con `curl`: inválido → 422 con mensajes ES/EN; honeypot → 200 sin guardar; válido en demo → `logged` + vista previa; límite por IP → 429 en la 7.ª con `Retry-After`; baja de extremo a extremo; cron simulada a +25 h → 1 recordatorio.
+  - Playwright (Chromium) sobre la página de baja a 1440 y 390 en ES y EN, sin errores de consola (`shots/lead/`).
+  - **No verificado en este entorno**: el formulario React compilado (no hay `node_modules` ni red para instalarlos), `wrangler dev`/D1 real, el envío real por Resend y el webhook contra Cal.com. Falta ejecutar `scripts/verify-shots.cjs` para las capturas del formulario a 1440 y 390 con `npm run dev`. La sintaxis de `Contact.jsx` y `submit.js` se comprobó con el analizador de TypeScript.
+

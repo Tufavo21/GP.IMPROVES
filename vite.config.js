@@ -44,7 +44,8 @@ export default defineConfig(({ mode }) => {
   const siteUrl = (env.VITE_SITE_URL || 'https://2con2estudio.example').replace(/\/$/, '');
   return {
     plugins: [react(), seoPlugin(siteUrl)],
-    server: { port: 5173 },
+    // Solo desarrollo: /api → Worker local (npm run worker:node, o `wrangler dev`, puerto 8787)
+    server: { port: 5173, proxy: { '/api': 'http://127.0.0.1:8787' } },
     build: { target: 'es2022' },
   };
 });
