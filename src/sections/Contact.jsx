@@ -5,7 +5,7 @@ import { reducedMotion } from '../lib/hooks.js';
 import { BUSINESS, FALTA, SHOW_PLACEHOLDERS } from '../content/business.js';
 import { TYPES, FINISHES, estimate } from '../content/pricing.js';
 import { validate, VALIDATORS, FIELD_ORDER, MIN_TEXT, MAX_TEXT, MAX_PHOTOS, MAX_PHOTO_MB, photoProblem } from '../lib/validate.js';
-import { submitRequest } from '../lib/submit.js';
+import { submitRequest, buildMailto } from '../lib/submit.js';
 import { SectionHead, Button, Icon, Falta } from '../components/ui.jsx';
 
 const EMPTY = { nombre: '', email: '', telefono: '', tipo: '', acabados: '', m2: '', descripcion: '', privacidad: false, website: '' };
@@ -24,7 +24,7 @@ export default function Contact({ index, total }) {
   const [photos, setPhotos] = useState([]);
   const [photoErr, setPhotoErr] = useState([]);
   const [drag, setDrag] = useState(false);
-  const [status, setStatus] = useState(null); // {kind: 'ok'|'fail', text}
+  const [status, setStatus] = useState(null); // {kind: 'ok'|'fail', text, href?, linkText?, preview?}
   const [sending, setSending] = useState(false);
   const [summary, setSummary] = useState('');
   const formRef = useRef(null);
@@ -86,9 +86,25 @@ export default function Contact({ index, total }) {
     };
     const res = await submitRequest({ data: { ...data, website: undefined }, photos, labels, lang });
     setSending(false);
-    if (!res.ok) setStatus({ kind: 'fail', text: t('contact.failed', { email: BUSINESS.email, phone: BUSINESS.phone.intl }) });
-    else if (res.mode === 'mailto') setStatus({ kind: 'ok', text: photos.length ? t('contact.mailtoDone', { n: photos.length }) : t('contact.mailtoDoneNoPhotos') });
-    else setStatus({ kind: 'ok', text: t('contact.httpDone') });
+    if (!res.ok) {
+      const bad = res.error?.kind === 'validation' ? FIELD_ORDER.filter((k) => res.error.errors?.[k]) : [];
+      if (bad.length) { // el servidor ha rechazado campos: se muestran con los mismos mensajes del formulario
+        setErrors(Object.fromEntries(bad.map((k) => [k, t(`contact.errors.${res.error.errors[k]}`) ? res.error.errors[k] : 'required'])));
+        setTouched(Object.fromEntries(FIELD_ORDER.map((k) => [k, true])));
+        setSummary(bad.length === 1 ? t('contact.errors.summaryOne') : t('contact.errors.summary', { n: bad.length }));
+        formRef.current?.querySelector(`[name="${bad[0]}"]`)?.focus();
+      } else if (res.error?.kind === 'rate') {
+        setStatus({ kind: 'fail', text: t('contact.rateLimited') });
+      } else { // el Worker no responde o falla: mensaje + enlace mailto de respaldo
+        setStatus({ kind: 'fail', text: t('contact.failed', { email: BUSINESS.email, phone: BUSINESS.phone.intl }), href: buildMailto({ data, photos, labels }), linkText: t('contact.failedMailto') });
+      }
+    } else if (res.mode === 'mailto') setStatus({ kind: 'ok', text: photos.length ? t('contact.mailtoDone', { n: photos.length }) : t('contact.mailtoDoneNoPhotos') });
+    else if (res.mode === 'lead') {
+      const text = res.mail === 'sent' ? t('contact.leadDone') : res.demo ? t('contact.leadDoneDemo') : t('contact.leadDoneNoMail');
+      setStatus({ kind: 'ok', text, preview: res.demo ? res.preview : undefined });
+      photos.forEach((p) => p.url && URL.revokeObjectURL(p.url));
+      setData(EMPTY); setPhotos([]); setPhotoErr([]); setTouched({}); setErrors({});
+    } else setStatus({ kind: 'ok', text: t('contact.httpDone') });
   };
 
   const err = (k) => (touched[k] ? errors[k] : undefined);
@@ -132,7 +148,7 @@ export default function Contact({ index, total }) {
           </dl>
         </aside>
 
-        <form ref={formRef} className="form" noValidate onSubmit={onSubmit} aria-describedby="form-summary">
+        <form ref={formRef} className="form" noValidate onSubmit={onSubmit} aria-describedby="form-summary" aria-busy={sending}>
           <p id="form-summary" className="form__summary" role="alert">{summary ? <><Icon.alert /> {summary}</> : null}</p>
           <div className="form__row">
             {text('nombre', 'text', { autoComplete: 'name', minLength: 2, maxLength: 120 })}
@@ -207,13 +223,21 @@ export default function Contact({ index, total }) {
           <div aria-live="polite">
             <AnimatePresence>
               {status ? (
-                <m.p key={status.text} className={`form__status form__status--${status.kind}`}
+                <m.p key={status.text} className={`form__status form__status--${status.kind}`} role={status.kind === 'fail' ? 'alert' : 'status'}
                   initial={reducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 200, damping: 26 }}>
                   {status.text}
+                  {status.href ? <> <a href={status.href}>{status.linkText}</a></> : null}
                 </m.p>
               ) : null}
             </AnimatePresence>
+            {status?.preview ? (
+              <details className="form__preview">
+                <summary>{t('contact.previewTitle')}</summary>
+                <p>{status.preview.subject}</p>
+                <pre>{status.preview.text}</pre>
+              </details>
+            ) : null}
           </div>
         </form>
       </div>

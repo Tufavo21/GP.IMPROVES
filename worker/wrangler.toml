@@ -1,0 +1,49 @@
+# Worker de respuesta automática al formulario de 2con2estudio.
+# NUNCA pongas secretos aquí. Los secretos se guardan con `wrangler secret put` (ver README):
+#   APP_SECRET, RESEND_API_KEY, BOOKING_WEBHOOK_SECRET (opcional)
+name = "2con2estudio-api"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+# Cron diaria de recordatorios (UTC). Máximo 2 recordatorios por solicitud.
+[triggers]
+crons = ["17 9 * * *"]
+
+# [FALTA: crear la base de datos] npx wrangler d1 create 2con2estudio-leads  → pega aquí el database_id
+[[d1_databases]]
+binding = "DB"
+database_name = "2con2estudio-leads"
+database_id = "REEMPLAZAR-CON-EL-ID-DE-D1"
+
+# [FALTA: dominio definitivo] Enruta /api/* del dominio de la web a este Worker, por ejemplo:
+# routes = [{ pattern = "2con2estudio.example/api/*", zone_name = "2con2estudio.example" }]
+
+# IA opcional (AI_DRAFT=true). Descomenta para activar el binding de Workers AI.
+# [ai]
+# binding = "AI"
+
+[vars]
+# ── Modo demo: SIEMPRE true por defecto. Con true, ningún correo sale a una dirección que no esté
+#    en DEMO_ALLOWLIST; el resto se registra en el log y se devuelve como vista previa.
+DEMO_MODE = "true"
+# [FALTA: tu correo de pruebas] Direcciones separadas por comas, p. ej. "tucorreo@ejemplo.com"
+DEMO_ALLOWLIST = ""
+# Borrador de respuesta con IA para el dueño (nunca se envía solo).
+AI_DRAFT = "false"
+
+# Destino del resumen. Si se deja vacío se usa el email público del cliente (src/content/business.js).
+OWNER_EMAIL = ""
+# [FALTA: proveedor de correo] Remitente verificado en el proveedor, p. ej. "2con2estudio <hola@tudominio.com>"
+MAIL_FROM = ""
+# [FALTA: URL del calendario] p. ej. el enlace público de Cal.com
+BOOKING_URL = ""
+# [FALTA: dirección postal] Aparece en el pie de todos los correos al visitante.
+POSTAL_ADDRESS = ""
+# [FALTA: dominio definitivo] Origen público donde vive /api (para el enlace de baja), sin barra final.
+PUBLIC_BASE_URL = ""
+# Orígenes que pueden llamar a /api/lead desde un navegador (coma). Vacío = sin comprobación de Origin.
+ALLOWED_ORIGINS = ""
+
+# Límite por IP: peticiones a /api/lead por ventana.
+RATE_LIMIT_MAX = "8"
+RATE_LIMIT_WINDOW_MIN = "60"

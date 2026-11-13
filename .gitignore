@@ -5,3 +5,9 @@ shots
 dist-share
 share
 entrega
+.env.local
+.env.*.local
+.dev.vars
+worker/.dev.vars
+worker/.data
+.wrangler

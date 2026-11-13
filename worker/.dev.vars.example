@@ -1,0 +1,12 @@
+# Copia este archivo a worker/.dev.vars (está en .gitignore). Son valores de DESARROLLO, nunca de producción.
+# Funciona con `wrangler dev` y con `node worker/dev/server.mjs`.
+APP_SECRET=cambia-esto-por-una-cadena-larga-aleatoria
+DEMO_MODE=true
+# Tu correo de pruebas: es el único al que puede llegar un correo en modo demo.
+DEMO_ALLOWLIST=
+# Solo si quieres enviar de verdad a tu correo de pruebas:
+# RESEND_API_KEY=
+# MAIL_FROM=2con2estudio <onboarding@resend.dev>
+BOOKING_URL=https://cal.example/2con2estudio-demo
+POSTAL_ADDRESS=[DEMO] Calle de Ejemplo 1, 46000 Valencia
+PUBLIC_BASE_URL=http://localhost:5173
